@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MC Pack Forge - 마스터 풀 에디터</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b0d10;color:#eef1f4;font-family:system-ui,-apple-system,sans-serif}
+.app{min-height:100vh;display:flex;flex-direction:column}
+.top{height:60px;border-bottom:1px solid #252a31;display:flex;align-items:center;padding:0 20px;gap:15px;background:#101318}
+.logo{font-weight:900;font-size:20px;color:#fff}
+.logo span{color:#6ee76e}
+.badge{font-size:12px;color:#9da5af;background:#1a1f26;padding:4px 8px;border-radius:6px}
+.main{display:grid;grid-template-columns:220px 1fr 260px;flex:1;min-height:0}
+.side,.right{background:#101318;border-right:1px solid #252a31;padding:16px;overflow-y:auto}
+.right{border-left:1px solid #252a31;border-right:0}
+h3{font-size:11px;color:#8f98a3;text-transform:uppercase;letter-spacing:.05em;margin:12px 4px 6px}
+.nav{padding:10px 12px;border-radius:8px;color:#bac1ca;cursor:pointer;margin:2px 0;font-size:13px;display:flex;align-items:center;gap:8px}
+.nav.active,.nav:hover{background:#1c232b;color:#fff}
+.content{padding:20px;overflow-y:auto}
+.title h1{margin:0 0 4px;font-size:24px}
+.sub{color:#8f98a3;font-size:13px;margin-bottom:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.card{background:#12171d;border:1px solid #282f38;border-radius:10px;padding:16px}
+.preview{height:110px;border-radius:8px;background:#090b0e;display:grid;place-items:center;margin-bottom:12px;border:1px solid #242a31}
+.preview canvas{image-rendering:pixelated;width:64px;height:64px}
+.card h2{font-size:15px;margin:0 0 4px}
+.card p{font-size:12px;color:#89929d;margin:0 0 12px}
+button{border:0;border-radius:8px;padding:8px 12px;background:#27313b;color:#fff;font-weight:600;font-size:13px;cursor:pointer;transition:.15s}
+button:hover{filter:brightness(1.15)}
+.primary{background:#49b95b;color:#071008}
+.danger{background:#7a252b;color:#fff}
+.full{width:100%}
+.row{display:flex;gap:8px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:#9da5af;margin-bottom:5px}
+input,select{width:100%;background:#171c22;border:1px solid #303740;color:#fff;padding:9px;border-radius:6px;outline:none;font-size:13px}
+input:focus,select:focus{border-color:#5fc96d}
+.empty{height:160px;display:grid;place-items:center;color:#7e8792;text-align:center;border:1px dashed #2a313a;border-radius:8px;margin-top:10px;font-size:13px}
+.asset{display:flex;align-items:center;gap:10px;background:#171c22;padding:10px;border-radius:8px;margin-bottom:6px;border:1px solid #252c34}
+.small{font-size:11px;color:#8d96a0}
+.target-btn{text-align:left;background:#171c22;border:1px solid #303740;padding:8px 10px;border-radius:6px;color:#fff;cursor:pointer;width:100%}
+.target-btn:hover{border-color:#5fc96d;background:#1f262f}
+.count-tag{background:#232a32;padding:2px 6px;border-radius:4px;font-size:11px;color:#70e181;float:right}
+@media(max-width:850px){.main{grid-template-columns:1fr}.side,.right{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+  <div class="logo">MC <span>FORGE</span></div>
+  <div class="badge">완전체 에디터</div>
+  <div style="margin-left:auto" class="row">
+    <button onclick="newPack()">초기화</button>
+    <button class="primary" onclick="downloadPack()">pack.mcmeta 저장</button>
+  </div>
+</header>
+<div class="main">
+<aside class="side">
+  <h3>메뉴</h3>
+  <div class="nav active" onclick="show('home',this)"><span>◈</span> 대시보드</div>
+  <div class="nav" onclick="show('assets',this)"><span>▦</span> 텍스처 에디터 (블록/아이템/엔티티/GUI)</div>
+  <div class="nav" onclick="show('sounds',this)"><span>♫</span> 사운드 에디터 (딱 100개)</div>
+  <div class="nav" onclick="show('settings',this)"><span>⚙</span> 팩 설정</div>
+</aside>
+
+<main class="content">
+
+<section id="home">
+  <div class="title">
+    <h1>마인크래프트 완전체 리소스팩 스튜디오</h1>
+    <div class="sub">모든 블록, 모든 아이템, 모든 엔티티, 모든 GUI 및 정확히 100개의 엄선된 사운드 관리</div>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <div class="preview"><canvas id="c1" width="16" height="16"></canvas></div>
+      <h2>텍스처 통합 관리</h2>
+      <p>블록, 아이템, 엔티티, GUI 전체 항목 제어</p>
+      <button class="full" onclick="show('assets');setAssetType('block')">텍스처 에디터 열기</button>
+    </div>
+    <div class="card">
+      <div class="preview"><div style="font-size:36px">♫</div></div>
+      <h2>사운드 관리</h2>
+      <p>핵심 효과음 100개 세트</p>
+      <button class="full" onclick="show('sounds')">사운드 에디터 열기</button>
+    </div>
+  </div>
+</section>
+
+<section id="assets" style="display:none">
+  <div class="title">
+    <h1>텍스처 에디터</h1>
+    <div class="sub">카테고리를 변경하고 모든 블록, 아이템, 엔티티, GUI 텍스처를 커스텀하세요.</div>
+  </div>
+  <div class="card">
+    <div class="row">
+      <div style="flex:1">
+        <label>분류 선택</label>
+        <select id="assetType" onchange="filterTargets()">
+          <option value="block">모든 블록 (Block)</option>
+          <option value="item">모든 아이템 (Item)</option>
+          <option value="entity">모든 엔티티 (Entity)</option>
+          <option value="gui">모든 GUI (GUI)</option>
+        </select>
+      </div>
+      <div style="flex:1">
+        <label>검색 <span class="count-tag" id="assetCountTag">0개</span></label>
+        <input id="targetSearch" placeholder="이름 또는 ID 검색..." oninput="filterTargets()">
+      </div>
+    </div>
+    <div id="targetGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px;margin-top:12px;max-height:220px;overflow-y:auto;padding-right:4px"></div>
+  </div>
+
+  <div id="chosenAsset" style="display:none;margin-top:12px" class="card">
+    <div class="row" style="align-items:center;justify-content:space-between">
+      <div>
+        <b id="chosenName"></b>
+        <div class="small" id="chosenPath"></div>
+      </div>
+      <button class="primary" onclick="document.getElementById('file').click()">PNG 파일 등록</button>
+    </div>
+    <input id="file" type="file" accept="image/png" hidden onchange="attachTexture(this.files[0])">
+  </div>
+
+  <h3>등록된 텍스처 목록</h3>
+  <div id="assetList"></div>
+</section>
+
+<section id="sounds" style="display:none">
+  <div class="title">
+    <h1>사운드 에디터 (대표 100선)</h1>
+    <div class="sub">마인크래프트 핵심 사운드 100개를 카테고리별로 관리하세요.</div>
+  </div>
+  <div class="card">
+    <div class="row">
+      <div style="flex:1">
+        <label>사운드 카테고리</label>
+        <select id="soundCategory" onchange="filterSounds()">
+          <option value="all">전체 (100개)</option>
+          <option value="block">블록 소리 (20개)</option>
+          <option value="item">아이템 소리 (20개)</option>
+          <option value="entity">엔티티/몹 소리 (20개)</option>
+          <option value="ui">UI/시스템 소리 (20개)</option>
+          <option value="ambient">환경/음악 소리 (20개)</option>
+        </select>
+      </div>
+      <div style="flex:1">
+        <label>검색 <span class="count-tag" id="soundCountTag">100개</span></label>
+        <input id="soundSearch" placeholder="소리 검색..." oninput="filterSounds()">
+      </div>
+    </div>
+    <div id="soundGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;margin-top:12px;max-height:220px;overflow-y:auto;padding-right:4px"></div>
+  </div>
+
+  <div id="chosenSound" style="display:none;margin-top:12px" class="card">
+    <div class="row" style="align-items:center;justify-content:space-between">
+      <div>
+        <b id="chosenSoundName"></b>
+        <div class="small" id="chosenSoundPath"></div>
+      </div>
+      <button class="primary" onclick="document.getElementById('sound').click()">OGG 파일 등록</button>
+    </div>
+    <input id="sound" type="file" accept=".ogg,audio/ogg" hidden onchange="attachSound(this.files[0])">
+  </div>
+
+  <h3>등록된 사운드 목록</h3>
+  <div id="soundList"></div>
+</section>
+
+<section id="settings" style="display:none">
+  <div class="title">
+    <h1>팩 설정</h1>
+  </div>
+  <div class="card" style="max-width:550px">
+    <div class="field">
+      <label>팩 이름</label>
+      <input id="packName" value="마스터 리소스팩">
+    </div>
+    <div class="field">
+      <label>팩 설명 (description)</label>
+      <input id="packDesc" value="모든 블록과 GUI, 100개 사운드가 포함된 리소스팩">
+    </div>
+    <div class="field">
+      <label>버전 선택 (Pack Format)</label>
+      <select id="version">
+        <option value="34">1.21.x (Format 34)</option>
+        <option value="32">1.20.5 - 1.20.6 (Format 32)</option>
+        <option value="22">1.20.3 - 1.20.4 (Format 22)</option>
+        <option value="15">1.20 - 1.20.1 (Format 15)</option>
+        <option value="6">1.16.x (Format 6)</option>
+      </select>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<aside class="right">
+  <h3>현황</h3>
+  <div class="card">
+    <div class="small">프로젝트명</div>
+    <b id="statusName" style="display:block;margin-top:2px;font-size:15px">마스터 리소스팩</b>
+    <hr style="border:0;border-top:1px solid #2a3037;margin:12px 0">
+    <div class="small">등록 텍스처: <b id="count" style="color:#6ee76e">0개</b></div>
+    <div class="small" style="margin-top:6px">등록 사운드: <b id="soundCount" style="color:#6ee76e">0개</b></div>
+  </div>
+</aside>
+</div>
+</div>
+
+<script>
+let files = [];
+let sounds = [];
+let selectedTarget = null;
+let selectedSound = null;
+
+// 모든 주요 블록 데이터 목록
+const blockData = [
+  ["stone","돌"],["granite","화강암"],["polished_granite","매끄러운 화강암"],["diorite","섬록암"],
+  ["polished_diorite","매끄러운 섬록암"],["andesite","안산암"],["polished_andesite","매끄러운 안산암"],
+  ["grass_block_side","잔디 블록 (측면)"],["grass_block_top","잔디 블록 (윗면)"],["dirt","흙"],
+  ["coarse_dirt","거친 흙"],["podzol_top","포드졸"],["mycelium_top","균사체"],["cobblestone","조약돌"],
+  ["mossy_cobblestone","이끼 낀 조약돌"],["oak_planks","참나무 판자"],["spruce_planks","가문비나무 판자"],
+  ["birch_planks","자작나무 판자"],["jungle_planks","정글나무 판자"],["acacia_planks","아카시아나무 판자"],
+  ["dark_oak_planks","짙은 참나무 판자"],["mangrove_planks","맹그로브 판자"],["cherry_planks","벚나무 판자"],
+  ["bamboo_planks","대나무 판자"],["bedrock","암반"],["sand","모래"],["red_sand","붉은 모래"],
+  ["gravel","자갈"],["coal_ore","석탄 광석"],["iron_ore","철광석"],["gold_ore","금광석"],
+  ["diamond_ore","다이아몬드 광석"],["lapis_ore","청금석 광석"],["redstone_ore","레드스톤 광석"],
+  ["emerald_ore","에메랄드 광석"],["copper_ore","구리 광석"],["deepslate","심층암"],
+  ["deepslate_coal_ore","심층석 석탄 광석"],["deepslate_iron_ore","심층석 철광석"],
+  ["deepslate_gold_ore","심층석 금광석"],["deepslate_diamond_ore","심층석 다이아몬드 광석"],
+  ["netherrack","네더락"],["soul_sand","영혼의 모래"],["soul_soil","영혼의 흙"],["basalt_side","현무암"],
+  ["blackstone","흑암"],["end_stone","엔드 돌"],["obsidian","흑요석"],["crying_obsidian","울부짖는 흑요석"],
+  ["glass","유리"],["tinted_glass","차광 유리"],["oak_log","참나무 원목"],["oak_leaves","참나무 잎"],
+  ["sponge","스펀지"],["crafting_table_top","제작대 윗면"],["furnace_front","화로 전면"],
+  ["blast_furnace_front","용광로 전면"],["smoker_front","훈제기 전면"],["anvil","모루"],
+  ["bookshelf","책장"],["tnt_side","TNT 옆면"],["chest","상자"],["ender_chest","엔더 상자"],
+  ["glowstone","발광석"],["sea_lantern","바다 등불"],["shroomlight","버섯등"],
+  ["amethyst_block","자수정 블록"],["sculk","스컬크"],["sculk_sensor_top","스컬크 감지기"],
+  ["sculk_shrieker_top","스컬크 비명자"],["beacon","신기루"],["lodestone_top","자석석"],
+  ["target_top","표적"],["hay_block_side","볏짚단"],["honeycomb_block","벌집 블록"],
+  ["slime_block","슬라임 블록"],["honey_block_top","꿀 블록"],["redstone_block","레드스톤 블록"],
+  ["coal_block","석탄 블록"],["iron_block","철 블록"],["gold_block","금 블록"],
+  ["diamond_block","다이아몬드 블록"],["emerald_block","에메랄드 블록"],["netherite_block","네더라이트 블록"]
+].map(x => [x[0], x[1], `assets/minecraft/textures/block/${x[0]}.png`]);
+
+// 모든 주요 아이템 데이터 목록
+const itemData = [
+  ["diamond_sword","다이아몬드 검"],["diamond_pickaxe","다이아몬드 곡괭이"],["diamond_axe","다이아몬드 도끼"],
+  ["diamond_shovel","다이아몬드 삽"],["diamond_hoe","다이아몬드 괭이"],["netherite_sword","네더라이트 검"],
+  ["netherite_pickaxe","네더라이트 곡괭이"],["netherite_axe","네더라이트 도끼"],["iron_sword","철 검"],
+  ["iron_pickaxe","철 곡괭이"],["golden_sword","금 검"],["bow","활"],["crossbow_standby","쇠뇌"],
+  ["trident","삼지창"],["arrow","화살"],["shield","방패"],["apple","사과"],["golden_apple","황금 사과"],
+  ["enchanted_golden_apple","마법에 걸린 황금 사과"],["bread","빵"],["cooked_beef","익힌 쇠고기"],
+  ["cooked_porkchop","익힌 돼지고기"],["cooked_chicken","익힌 닭고기"],["golden_carrot","황금 당근"],
+  ["coal","석탄"],["diamond","다이아몬드"],["emerald","에메랄드"],["iron_ingot","철괴"],
+  ["gold_ingot","금괴"],["copper_ingot","구리괴"],["netherite_ingot","네더라이트 주괴"],
+  ["stick","막대기"],["string","실"],["feather","깃털"],["gunpowder","화약"],["ender_pearl","엔더 진주"],
+  ["ender_eye","엔더의 눈"],["blaze_rod","블레이즈 막대"],["totem_of_undying","불사의 토템"],
+  ["experience_bottle","마법의 병"],["firework_rocket","폭죽"]
+].map(x => [x[0], x[1], `assets/minecraft/textures/item/${x[0]}.png`]);
+
+// 모든 엔티티 데이터 목록
+const entityData = [
+  ["creeper/creeper","크리퍼"],["zombie/zombie","좀비"],["skeleton/skeleton","스켈레톤"],
+  ["spider/spider","거미"],["spider/cave_spider","동굴 거미"],["enderman/enderman","엔더맨"],
+  ["witch","마녀"],["slime/slime","슬라임"],["ghast/ghast","가스트"],["blaze","블레이즈"],
+  ["skeleton/wither_skeleton","위더 스켈레톤"],["piglin/piglin","피글린"],["warden/warden","워든"],
+  ["villager/villager","주민"],["wandering_trader","떠돌이 상인"],["iron_golem/iron_golem","철 골렘"],
+  ["pig/pig","돼지"],["cow/cow","소"],["sheep/sheep","양"],["chicken","닭"],["wolf/wolf","늑대"],
+  ["cat/tabby","고양이"],["enderdragon/dragon","엔더 드래곤"],["wither/wither","위더"],
+  ["steve","스티브"],["alex","알렉스"],["armorstand/wood","갑옷 거치대"],["boat/oak","참나무 보트"],
+  ["minecart","마인카트"]
+].map(x => [x[0].split('/')[1]||x[0], x[1], `assets/minecraft/textures/entity/${x[0]}.png`]);
+
+// 모든 GUI 데이터 목록
+const guiData = [
+  ["widgets","버튼/슬라이더 (widgets.png)"],["icons","체력/허기/산소 아이콘 (icons.png)"],
+  ["container/inventory","플레이어 인벤토리"],["container/generic_54","상자 GUI"],
+  ["container/crafting_table","제작대 GUI"],["container/furnace","화로 GUI"],
+  ["container/blast_furnace","용광로 GUI"],["container/smoker","훈제기 GUI"],
+  ["container/anvil","모루 GUI"],["container/enchanting_table","마법부여대 GUI"],
+  ["container/villager","주민 거래 GUI"],["container/beacon","비콘 GUI"],
+  ["container/shulker_box","샬커 상자 GUI"],["container/hopper","깔때기 GUI"],
+  ["container/dispenser","발사기 GUI"],["container/loom","베틀 GUI"],
+  ["container/cartography_table","지도 제작대 GUI"],["container/grindstone","숫돌 GUI"],
+  ["container/smithing","대장장이 작업대 GUI"],["container/stonecutter","석재 절단기 GUI"]
+].map(x => [x[0].split('/').pop(), x[1], `assets/minecraft/textures/gui/${x[0]}.png`]);
+
+const targets = { block: blockData, item: itemData, entity: entityData, gui: guiData };
+
+// 정확히 100개로 맞춘 사운드 데이터 세트
+const soundList100 = [
+  // 블록 (20개)
+  ["stone_break","돌 파괴음","block.stone.break","block"],
+  ["stone_step","돌 발소리","block.stone.step","block"],
+  ["stone_place","돌 설치음","block.stone.place","block"],
+  ["grass_break","잔디 파괴음","block.grass.break","block"],
+  ["grass_step","잔디 발소리","block.grass.step","block"],
+  ["wood_break","나무 파괴음","block.wood.break","block"],
+  ["wood_step","나무 발소리","block.wood.step","block"],
+  ["glass_break","유리 깨지는 소리","block.glass.break","block"],
+  ["sand_break","모래 파괴음","block.sand.break","block"],
+  ["gravel_break","자갈 파괴음","block.gravel.break","block"],
+  ["deepslate_break","심층암 파괴음","block.deepslate.break","block"],
+  ["chest_open","상자 열기","block.chest.open","block"],
+  ["chest_close","상자 닫기","block.chest.close","block"],
+  ["anvil_use","모루 사용음","block.anvil.use","block"],
+  ["anvil_land","모루 떨어짐","block.anvil.land","block"],
+  ["portal_ambient","네더 포탈 배경음","block.portal.ambient","block"],
+  ["water_splash","물 튀김","block.water.splash","block"],
+  ["lava_pop","용암 기포","block.lava.pop","block"],
+  ["fire_ambient","불 타오름","block.fire.ambient","block"],
+  ["sculk_shriek","스컬크 비명","block.sculk_shrieker.shriek","block"],
+
+  // 아이템 (20개)
+  ["item_pickup","아이템 줍기","entity.item.pickup","item"],
+  ["item_break","도구 파괴음","entity.item.break","item"],
+  ["armor_equip","갑옷 착용","item.armor.equip_generic","item"],
+  ["shield_block","방패 방어음","item.shield.block","item"],
+  ["totem_use","불사의 토템 발동","item.totem.use","item"],
+  ["trident_throw","삼지창 던지기","item.trident.throw","item"],
+  ["bow_shoot","활 발사","entity.arrow.shoot","item"],
+  ["crossbow_shoot","쇠뇌 발사","item.crossbow.shoot","item"],
+  ["eat","음식 먹기","entity.generic.eat","item"],
+  ["drink","마시기","entity.generic.drink","item"],
+  ["bottle_fill","병 물 채우기","item.bottle.fill","item"],
+  ["flintandsteel_use","라이터 켜기","item.flintandsteel.use","item"],
+  ["bucket_fill","양동이 채우기","item.bucket.fill","item"],
+  ["bucket_empty","양동이 비우기","item.bucket.empty","item"],
+  ["hoe_till","괭이질","item.hoe.till","item"],
+  ["axe_strip","도끼 껍질 벗기기","item.axe.strip","item"],
+  ["elytra_flying","겉날개 비행","item.elytra.flying","item"],
+  ["spyglass_use","망원경 사용","item.spyglass.use","item"],
+  ["goat_horn_play","염소 뿔피리 연주","item.goat_horn.play","item"],
+  ["bone_meal_use","뼛가루 사용","item.bone_meal.use","item"],
+
+  // 엔티티/몹 (20개)
+  ["creeper_primed","크리퍼 점화","entity.creeper.primed","entity"],
+  ["zombie_ambient","좀비 소리","entity.zombie.ambient","entity"],
+  ["zombie_hurt","좀비 피격","entity.zombie.hurt","entity"],
+  ["zombie_death","좀비 사망","entity.zombie.death","entity"],
+  ["skeleton_ambient","스켈레톤 뼈 소리","entity.skeleton.ambient","entity"],
+  ["skeleton_hurt","스켈레톤 피격","entity.skeleton.hurt","entity"],
+  ["enderman_stare","엔더맨 분노","entity.enderman.stare","entity"],
+  ["enderman_teleport","엔더맨 순간이동","entity.enderman.teleport","entity"],
+  ["villager_ambient","주민 음냐","entity.villager.ambient","entity"],
+  ["villager_no","주민 거절","entity.villager.no","entity"],
+  ["villager_yes","주민 거래 승인","entity.villager.yes","entity"],
+  ["warden_heartbeat","워든 심장박동","entity.warden.heartbeat","entity"],
+  ["enderdragon_growl","엔더 드래곤 포효","entity.ender_dragon.growl","entity"],
+  ["wither_spawn","위더 소환","entity.wither.spawn","entity"],
+  ["pig_ambient","돼지 소리","entity.pig.ambient","entity"],
+  ["cow_ambient","소 소리","entity.cow.ambient","entity"],
+  ["wolf_howl","늑대 울음","entity.wolf.howl","entity"],
+  ["cat_purr","고양이 골골송","entity.cat.purr","entity"],
+  ["player_hurt","플레이어 피격","entity.player.hurt","entity"],
+  ["player_death","플레이어 사망","entity.player.death","entity"],
+
+  // UI/시스템 (20개)
+  ["button_click","버튼 클릭","gui.button.press","ui"],
+  ["levelup","레벨업 효과음","entity.player.levelup","ui"],
+  ["exp_orb","경험치 구슬","entity.experience_orb.pickup","ui"],
+  ["toast_in","발전과제 알림","ui.toast.in","ui"],
+  ["toast_challenge","도전과제 완료","ui.toast.challenge_complete","ui"],
+  ["loom_take_pattern","베틀 패턴 완성","ui.loom.take_pattern","ui"],
+  ["cartography_table_use","지도 제작대 사용","ui.cartography_table.use","ui"],
+  ["stonecutter_take","석재 절단기 사용","ui.stonecutter.take_result","ui"],
+  ["grindstone_use","숫돌 사용","ui.grindstone.use","ui"],
+  ["smithing_use","대장장이 작업대","ui.smithing_table.use","ui"],
+  ["compass_lock","나침반 고정","item.lodestone_compass.lock","ui"],
+  ["recipe_book_open","제작책 열기","item.book.page_turn","ui"],
+  ["trade_success","거래 성공","entity.villager.yes","ui"],
+  ["radar_beep","벨 경고음","block.note_block.bell","ui"],
+  ["chat_message","채팅 알림","gui.chat.message","ui"],
+  ["inventory_open","인벤토리 열기","gui.inventory.open","ui"],
+  ["inventory_close","인벤토리 닫기","gui.inventory.close","ui"],
+  ["disenchant","마법 해제","block.grindstone.use","ui"],
+  ["raid_horn","습격 뿔피리","event.raid.horn","ui"],
+  ["wither_death","위더 처치","entity.wither.death","ui"],
+
+  // 환경/음악 (20개)
+  ["weather_rain","비 내림","weather.rain","ambient"],
+  ["weather_thunder","천둥 번개","entity.lightning_bolt.thunder","ambient"],
+  ["cave_ambient","동굴 소리","ambient.cave","ambient"],
+  ["nether_waste_ambient","네더 황무지","ambient.nether_wastes.loop","ambient"],
+  ["basalt_deltas_ambient","현무암 삼각주","ambient.basalt_deltas.loop","ambient"],
+  ["crimson_forest_ambient","진홍빛 숲","ambient.crimson_forest.loop","ambient"],
+  ["warped_forest_ambient","뒤틀린 숲","ambient.warped_forest.loop","ambient"],
+  ["soul_sand_valley","영혼의 모래 계곡","ambient.soul_sand_valley.loop","ambient"],
+  ["underwater_enter","수중 진입","ambient.underwater.enter","ambient"],
+  ["underwater_loop","수중 배경음","ambient.underwater.loop","ambient"],
+  ["music_disc_13","음반 13","music_disc.13","ambient"],
+  ["music_disc_cat","음반 cat","music_disc.cat","ambient"],
+  ["music_disc_blocks","음반 blocks","music_disc.blocks","ambient"],
+  ["music_disc_chirp","음반 chirp","music_disc.chirp","ambient"],
+  ["music_disc_far","음반 far","music_disc.far","ambient"],
+  ["music_disc_mall","음반 mall","music_disc.mall","ambient"],
+  ["music_disc_mellohi","음반 mellohi","music_disc.mellohi","ambient"],
+  ["music_disc_stal","음반 stal","music_disc.stal","ambient"],
+  ["music_disc_pigstep","음반 pigstep","music_disc.pigstep","ambient"],
+  ["music_disc_otherside","음반 otherside","music_disc.otherside","ambient"]
+];
+
+function show(id, el) {
+  document.querySelectorAll('main section').forEach(x => x.style.display = 'none');
+  document.getElementById(id).style.display = 'block';
+  document.querySelectorAll('.nav').forEach(x => x.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+function setAssetType(type) {
+  document.getElementById('assetType').value = type;
+  filterTargets();
+}
+
+function filterTargets() {
+  const type = document.getElementById('assetType').value;
+  const q = document.getElementById('targetSearch').value.toLowerCase().trim();
+  const grid = document.getElementById('targetGrid');
+  grid.innerHTML = '';
+
+  const list = targets[type] || [];
+  const filtered = list.filter(x => (x[0] + x[1]).toLowerCase().includes(q));
+
+  document.getElementById('assetCountTag').textContent = filtered.length + '개';
+
+  filtered.forEach(x => {
+    const b = document.createElement('button');
+    b.className = 'target-btn';
+    b.innerHTML = `<b>${x[1]}</b><div class="small">${x[0]}</div>`;
+    b.onclick = () => {
+      selectedTarget = x;
+      document.getElementById('chosenAsset').style.display = 'block';
+      document.getElementById('chosenName').textContent = x[1] + ' (' + x[0] + ')';
+      document.getElementById('chosenPath').textContent = x[2];
+    };
+    grid.appendChild(b);
+  });
+}
+
+function attachTexture(f) {
+  if (!f || !selectedTarget) return;
+  files.push({ file: f, target: selectedTarget });
+  renderAssets();
+}
+
+function renderAssets() {
+  const box = document.getElementById('assetList');
+  box.innerHTML = '';
+  files.forEach((x, i) => {
+    box.innerHTML += `
+      <div class="asset">
+        <div style="flex:1"><b>${x.target[1]} (${x.target[0]})</b><div class="small">${x.target[2]} · 파일: ${x.file.name}</div></div>
+        <button class="danger" style="padding:4px 8px" onclick="files.splice(${i},1);renderAssets()">삭제</button>
+      </div>`;
+  });
+  if (!files.length) box.innerHTML = '<div class="empty">등록된 텍스처가 없습니다. 상단에서 선택 후 PNG를 등록하세요.</div>';
+  document.getElementById('count').textContent = files.length + '개';
+}
+
+function filterSounds() {
+  const cat = document.getElementById('soundCategory').value;
+  const q = document.getElementById('soundSearch').value.toLowerCase().trim();
+  const grid = document.getElementById('soundGrid');
+  grid.innerHTML = '';
+
+  const filtered = soundList100.filter(x => {
+    const matchCat = (cat === 'all' || x[3] === cat);
+    const matchQuery = (x[0] + x[1] + x[2]).toLowerCase().includes(q);
+    return matchCat && matchQuery;
+  });
+
+  document.getElementById('soundCountTag').textContent = filtered.length + '개';
+
+  filtered.forEach(x => {
+    const b = document.createElement('button');
+    b.className = 'target-btn';
+    b.innerHTML = `<b>${x[1]}</b><div class="small">${x[2]}</div>`;
+    b.onclick = () => {
+      selectedSound = x;
+      document.getElementById('chosenSound').style.display = 'block';
+      document.getElementById('chosenSoundName').textContent = x[1] + ' (' + x[0] + ')';
+      document.getElementById('chosenSoundPath').textContent = 'assets/minecraft/sounds/' + x[2].replaceAll('.', '/') + '.ogg';
+    };
+    grid.appendChild(b);
+  });
+}
+
+function attachSound(f) {
+  if (!f || !selectedSound) return;
+  sounds.push({ file: f, target: selectedSound });
+  renderSounds();
+}
+
+function renderSounds() {
+  const box = document.getElementById('soundList');
+  box.innerHTML = '';
+  sounds.forEach((x, i) => {
+    box.innerHTML += `
+      <div class="asset">
+        <div style="flex:1"><b>${x.target[1]} (${x.target[0]})</b><div class="small">assets/minecraft/sounds/${x.target[2].replaceAll('.','/')}.ogg · ${x.file.name}</div></div>
+        <button class="danger" style="padding:4px 8px" onclick="sounds.splice(${i},1);renderSounds()">삭제</button>
+      </div>`;
+  });
+  if (!sounds.length) box.innerHTML = '<div class="empty">등록된 사운드가 없습니다. 상단에서 선택 후 OGG를 등록하세요.</div>';
+  document.getElementById('soundCount').textContent = sounds.length + '개';
+}
+
+document.getElementById('packName').addEventListener('input', e => {
+  document.getElementById('statusName').textContent = e.target.value || '마스터 리소스팩';
+});
+
+function newPack() {
+  if (confirm('초기화하시겠습니까?')) {
+    files = []; sounds = [];
+    renderAssets(); renderSounds();
+  }
+}
+
+function downloadPack() {
+  const desc = document.getElementById('packDesc').value;
+  const ver = parseInt(document.getElementById('version').value, 10);
+  const blob = new Blob([JSON.stringify({ pack: { pack_format: ver, description: desc } }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'pack.mcmeta';
+  a.click();
+}
+
+const ctx = document.getElementById('c1').getContext('2d');
+ctx.fillStyle = '#555'; ctx.fillRect(0,0,16,16);
+ctx.fillStyle = '#49b95b'; ctx.fillRect(0,0,16,4);
+
+filterTargets();
+filterSounds();
+renderAssets();
+renderSounds();
+</script>
+</body>
+</html>
